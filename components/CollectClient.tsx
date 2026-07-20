@@ -273,7 +273,10 @@ export function CollectClient() {
         <aside>
           <section className="side-panel">
             <p className="eyebrow">샘플 수집</p>
-            <h1>동작 라벨을 고르고 샘플을 모으세요</h1>
+            <h1>수집 설정</h1>
+            <p className="status-note">
+              라벨 선택과 수집 시작·완료는 카메라 위 툴바에서 합니다. 아래 값은 이 기기에 자동 저장됩니다.
+            </p>
             <div className="field">
               <label htmlFor="setName">샘플 세트 이름</label>
               <input id="setName" value={setName} onChange={(event) => setSetName(event.target.value)} placeholder="예: 3학년_수돗가A" />
@@ -282,23 +285,11 @@ export function CollectClient() {
               <label htmlFor="deviceName">기기/장소 메모</label>
               <input id="deviceName" value={deviceName} onChange={(event) => setDeviceName(event.target.value)} placeholder="예: 보건실 패드" />
             </div>
-            <div className="field">
-              <label htmlFor="labelSelect">현재 라벨</label>
-              <select id="labelSelect" value={selectedLabel} onChange={(event) => setSelectedLabel(event.target.value as LabelId)}>
-                {LABELS.map((label) => (
-                  <option value={label.id} key={label.id}>
-                    {label.name}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div className="button-row">
               <button type="button" onClick={addSingle}>
                 1개 저장
               </button>
-              <button className={isSampling ? "danger" : "primary"} type="button" onClick={toggleSampling}>
-                {isSampling ? `수집 완료 (${batchCount}/${BATCH_SIZE})` : "수집 시작"}
-              </button>
+              <span className="status-note">미세 보강용: 현재 프레임 1장만 저장</span>
             </div>
           </section>
 
