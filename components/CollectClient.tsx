@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHandwashCamera } from "@/components/useHandwashCamera";
+import { speak, warmSpeech } from "@/lib/speech";
 import { LABELS, sampleCounts, type HandwashSample, type LabelId } from "@/lib/handwash";
 
 const LOCAL_KEY = "handwash-school-pending-samples";
@@ -81,6 +82,10 @@ export function CollectClient() {
 
   const camera = useHandwashCamera({ samples: pendingSamples, onFrame });
   const counts = useMemo(() => sampleCounts(pendingSamples), [pendingSamples]);
+
+  useEffect(() => {
+    warmSpeech();
+  }, []);
 
   // 세트 이름·기기 메모·현재 라벨을 기기에 자동 저장(다음 방문 때 복원)
   useEffect(() => {
@@ -349,11 +354,3 @@ function savePendingSamples(samples: HandwashSample[]) {
   window.localStorage.setItem(LOCAL_KEY, JSON.stringify(samples));
 }
 
-function speak(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ko-KR";
-  utterance.rate = 1.02;
-  window.speechSynthesis.speak(utterance);
-}

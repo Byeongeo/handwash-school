@@ -4,6 +4,7 @@ import jsQR from "jsqr";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import { useHandwashCamera } from "@/components/useHandwashCamera";
+import { speak, warmSpeech } from "@/lib/speech";
 import {
   createEmptyProgress,
   labelName,
@@ -54,7 +55,7 @@ export function StudentClient() {
   const finishingRef = useRef(false);
   const lastHandAtRef = useRef(0);
   const lastCoachAtRef = useRef(0);
-  const lastCompletedStepRef = useRef("");
+  const announcedStepsRef = useRef<Set<string>>(new Set());
   const lastQrScanAtRef = useRef(0);
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const armTimerRef = useRef<number | null>(null);
@@ -131,7 +132,7 @@ export function StudentClient() {
       setSaveState("");
       lastHandAtRef.current = performance.now();
       lastCoachAtRef.current = performance.now();
-      lastCompletedStepRef.current = "";
+      announcedStepsRef.current = new Set();
       setPhaseBoth("washing");
       speak(`${next.name || next.id} 학생, 손씻기를 시작합니다.`);
     },
@@ -232,8 +233,9 @@ export function StudentClient() {
             [label]: Math.min(cfg.requiredSeconds, (prev[label] || 0) + frame.dt)
           };
           progressRef.current = next;
-          if (next[label] >= cfg.requiredSeconds && lastCompletedStepRef.current !== label) {
-            lastCompletedStepRef.current = label;
+          // 완료 안내는 단계당 딱 한 번만
+          if (next[label] >= cfg.requiredSeconds && !announcedStepsRef.current.has(label)) {
+            announcedStepsRef.current.add(label);
             speak(`${labelName(label)} 단계 완료`);
           }
           if (STEP_LABELS.every((step) => (next[step.id] || 0) >= cfg.requiredSeconds)) {
@@ -244,8 +246,15 @@ export function StudentClient() {
       }
 
       if (frame.now - lastCoachAtRef.current > COACH_INTERVAL_MS) {
-        const missing = STEP_LABELS.find((label) => (progressRef.current[label.id] || 0) < cfg.requiredSeconds);
-        if (missing) speak(`${missing.short} 단계를 더 해 주세요.`);
+        // 아직 완료되지 않은 단계만 안내(적게 남으면 목록으로)
+        const missing = STEP_LABELS.filter((label) => (progressRef.current[label.id] || 0) < cfg.requiredSeconds);
+        if (missing.length > 0) {
+          speak(
+            missing.length <= 3
+              ? `남은 단계: ${missing.map((label) => label.short).join(", ")}`
+              : `${missing[0].short} 단계를 더 해 주세요.`
+          );
+        }
         lastCoachAtRef.current = frame.now;
       }
     },
@@ -269,6 +278,7 @@ export function StudentClient() {
 
   // 설정·샘플 로드
   useEffect(() => {
+    warmSpeech();
     async function load() {
       try {
         const cfgRes = await fetch("/api/config");
@@ -428,11 +438,3 @@ function scanQr(
   if (code?.data) onScan(code.data);
 }
 
-function speak(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ko-KR";
-  utterance.rate = 1.02;
-  window.speechSynthesis.speak(utterance);
-}
