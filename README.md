@@ -26,11 +26,9 @@ Vercel에 배포하고, Google Sheets 사본을 백엔드로 사용하는 손씻
 
 ### 2. Vercel 배포
 
-아래 Deploy Button의 `repository-url`은 실제 GitHub 저장소 주소로 바꿔 사용하세요.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FByeongeo%2Fhandwash-school&env=APPS_SCRIPT_URL,APP_SHARED_SECRET,TRAINER_CODE&envDescription=Apps%20Script%20web%20app%20URL%20and%20optional%20secrets&project-name=handwash-school&repository-name=handwash-school)
 
-```md
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_ID%2Fhandwash-school&env=APPS_SCRIPT_URL,APP_SHARED_SECRET,TRAINER_CODE&envDescription=Apps%20Script%20web%20app%20URL%20and%20optional%20secrets&project-name=handwash-school&repository-name=handwash-school)
-```
+운영 배포본: https://handwash-school.vercel.app (GitHub `main` 푸시 시 자동 재배포)
 
 Vercel 환경변수:
 
