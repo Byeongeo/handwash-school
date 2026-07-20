@@ -753,7 +753,8 @@
             </p>
             <div class="callout warn">
               업로드 전에는 샘플이 브라우저 안에만 임시 저장됩니다. 수집이 끝나면 반드시
-              <span class="button-name">묶음 업로드</span>를 누릅니다.
+              <span class="button-name">묶음 업로드</span>를 누릅니다. 샘플이 많으면 400개씩 자동으로 나눠
+              올라가며, 끝나면 음성 안내와 함께 임시 샘플 개수가 0이 됩니다.
             </div>
           </div>
         </div>
@@ -959,10 +960,10 @@
           <div class="warning">
             <h3>샘플 업로드가 안 될 때</h3>
             <ul>
-              <li><code>TRAINER_CODE</code>와 수집 페이지의 <code>수집 코드</code>가 같은지 확인합니다.</li>
+              <li><code>TRAINER_CODE</code>와 수집 페이지의 <code>수집 코드</code>가 같은지 확인합니다(Vercel에 설정하지 않았다면 빈 칸이면 됩니다).</li>
               <li>Vercel 환경변수 <code>APPS_SCRIPT_URL</code>이 <code>/exec</code>로 끝나는지 확인합니다.</li>
               <li>Apps Script 배포 권한이 <code>모든 사용자</code>인지 확인합니다.</li>
-              <li>한 번에 500개 이하로 업로드합니다.</li>
+              <li>샘플이 많아도 앱이 400개씩 자동으로 나눠 올립니다. 중간에 끊기면 저장 안 된 나머지만 남으니 다시 눌러 이어서 올립니다.</li>
             </ul>
           </div>
 

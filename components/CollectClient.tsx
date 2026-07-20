@@ -8,6 +8,8 @@ const LOCAL_KEY = "handwash-school-pending-samples";
 const SETTINGS_KEY = "handwash-school-collect-settings";
 // 수집 시작 1회당 이만큼 모이면 자동으로 수집 완료(추가 수집은 다시 수집 시작)
 const BATCH_SIZE = 100;
+// 서버가 한 번에 500개까지 받으므로 그 아래로 나눠 순차 업로드
+const UPLOAD_CHUNK = 400;
 
 type CollectSettings = { setName: string; deviceName: string; label: LabelId };
 
@@ -112,33 +114,63 @@ export function CollectClient() {
   };
 
   const uploadSamples = async () => {
-    if (pendingSamples.length === 0) {
+    const all = pendingSamples;
+    if (all.length === 0) {
       setUploadState("업로드할 샘플이 없습니다.");
       return;
     }
-    setUploadState("샘플을 업로드하는 중입니다.");
-    try {
-      const res = await fetch("/api/samples", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trainerCode,
-          setName: setName.trim() || "default",
-          device: deviceName.trim(),
-          samples: pendingSamples
-        })
+    // 업로드 중 새 샘플이 섞이지 않도록 수집 중지
+    isSamplingRef.current = false;
+    setIsSampling(false);
+
+    const chunks: HandwashSample[][] = [];
+    for (let index = 0; index < all.length; index += UPLOAD_CHUNK) {
+      chunks.push(all.slice(index, index + UPLOAD_CHUNK));
+    }
+
+    let uploadedCount = 0;
+    const dropUploaded = () => {
+      setPendingSamples((prev) => {
+        const rest = prev.slice(uploadedCount);
+        savePendingSamples(rest);
+        return rest;
       });
-      const data = await res.json();
-      if (!res.ok || !data?.ok) {
-        setUploadState(data?.message || "업로드에 실패했습니다.");
+    };
+
+    for (let index = 0; index < chunks.length; index += 1) {
+      setUploadState(`업로드 중… ${index + 1}/${chunks.length} 묶음 (${uploadedCount}/${all.length}개 완료)`);
+      try {
+        const res = await fetch("/api/samples", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            trainerCode,
+            setName: setName.trim() || "default",
+            device: deviceName.trim(),
+            samples: chunks[index]
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.ok) {
+          dropUploaded();
+          setUploadState(
+            `${uploadedCount}개는 저장됨 · 나머지 실패: ${data?.message || "업로드에 실패했습니다."} 다시 눌러 이어서 올리세요.`
+          );
+          speak("업로드가 중간에 실패했습니다. 다시 시도하세요.");
+          return;
+        }
+        uploadedCount += chunks[index].length;
+      } catch {
+        dropUploaded();
+        setUploadState(`${uploadedCount}개는 저장됨 · 네트워크 오류로 중단. 다시 눌러 이어서 올리세요.`);
+        speak("네트워크 오류로 업로드가 중단되었습니다.");
         return;
       }
-      setUploadState(`${data.saved || pendingSamples.length}개 샘플을 Google Sheets에 저장했습니다.`);
-      setPendingSamples([]);
-      savePendingSamples([]);
-    } catch {
-      setUploadState("서버에 연결하지 못했습니다. 네트워크를 확인하세요.");
     }
+
+    dropUploaded();
+    setUploadState(`${uploadedCount}개 샘플을 Google Sheets에 저장했습니다.`);
+    speak(`${uploadedCount}개 샘플 업로드 완료`);
   };
 
   const exportJson = () => {
