@@ -4,7 +4,7 @@ import jsQR from "jsqr";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import { useHandwashCamera } from "@/components/useHandwashCamera";
-import { speak, warmSpeech } from "@/lib/speech";
+import { beep, speak, speechSupportInfo, warmSpeech } from "@/lib/speech";
 import {
   createEmptyProgress,
   labelName,
@@ -43,6 +43,8 @@ export function WashClient() {
   const [result, setResult] = useState("");
   const [saveState, setSaveState] = useState("");
   const [qrEnabled, setQrEnabled] = useState(true);
+  const [soundNote, setSoundNote] = useState("");
+  const soundTimerRef = useRef<number | null>(null);
 
   const configRef = useRef(config);
   const progressRef = useRef(progress);
@@ -256,9 +258,37 @@ export function WashClient() {
             <button type="button" onClick={() => void camera.toggleFacing()}>
               카메라 전환 ({camera.facing === "user" ? "화면 쪽" : "바깥 쪽"})
             </button>
-            <button type="button" onClick={() => speak("소리 테스트입니다. 이 소리가 들리면 정상입니다.")}>
+            <button
+              type="button"
+              onClick={() => {
+                beep();
+                const info = speechSupportInfo();
+                const base = `① 방금 '삐' 효과음을 냈습니다 — 안 들렸다면 미디어 볼륨·무음·블루투스 문제 ② 음성엔진 ${
+                  info.supported ? "있음" : "없음"
+                } · 목소리 ${info.voices}개${info.supported ? (info.korean ? " (한국어 있음)" : " (한국어 없음)") : ""}${
+                  info.samsungBrowser ? " · 삼성 인터넷 감지 → 크롬으로 여세요" : ""
+                }`;
+                setSoundNote(`${base} ③ 음성: 재생 시도 중…`);
+                if (soundTimerRef.current) window.clearTimeout(soundTimerRef.current);
+                soundTimerRef.current = window.setTimeout(
+                  () => setSoundNote(`${base} ③ 음성: 3초째 반응 없음 — 크롬 사용·휴대폰 재시작·TTS(한국어) 설치를 확인하세요`),
+                  3000
+                );
+                speak("소리 테스트입니다. 이 소리가 들리면 정상입니다.", {
+                  onstart: () => {
+                    if (soundTimerRef.current) window.clearTimeout(soundTimerRef.current);
+                    setSoundNote(`${base} ③ 음성: 재생 시작됨 ✓ (그래도 안 들리면 미디어 볼륨)`);
+                  },
+                  onerror: (message) => {
+                    if (soundTimerRef.current) window.clearTimeout(soundTimerRef.current);
+                    setSoundNote(`${base} ③ 음성 오류: ${message}`);
+                  }
+                });
+              }}
+            >
               소리 테스트
             </button>
+            {soundNote && <span className="status-note">{soundNote}</span>}
             <span className="status-note">{camera.message}</span>
           </div>
           <div className={"viewer" + (camera.mirrored ? " mirrored" : "")}>
