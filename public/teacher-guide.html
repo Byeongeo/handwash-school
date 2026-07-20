@@ -357,6 +357,7 @@
         <a class="brand" href="#top">손씻기 코칭 앱 교사용 안내</a>
         <nav class="nav-links" aria-label="빠른 이동">
           <a href="#prepare">준비물</a>
+          <a href="#accounts">계정 만들기</a>
           <a href="#own">내 앱 만들기</a>
           <a href="#collect">샘플 수집</a>
           <a href="#wash">학생 사용</a>
@@ -409,8 +410,8 @@
         <div class="checklist">
           <ul>
             <li>Google 계정: Google Sheets 사본과 Apps Script 배포에 필요합니다.</li>
-            <li>GitHub 계정: Vercel Deploy Button으로 앱 저장소를 복사할 때 필요합니다.</li>
-            <li>Vercel 계정: GitHub 계정으로 로그인하면 됩니다.</li>
+            <li>GitHub 계정: 앱 저장소를 복사할 때 필요합니다. 없다면 아래 2번에서 만드는 방법을 안내합니다.</li>
+            <li>Vercel 계정: GitHub 계정으로 로그인하면 됩니다(아래 2번 참고).</li>
             <li>카메라가 있는 휴대폰 또는 패드: 실제 수돗가에서 샘플을 모으고 학생용 앱을 실행합니다.</li>
             <li>인터넷 연결: MediaPipe 모델과 앱을 불러올 때 필요합니다.</li>
             <li>투명 지퍼백 또는 방수 케이스: 물가에서 기기를 보호합니다.</li>
@@ -428,10 +429,58 @@
         </div>
       </section>
 
+      <section id="accounts">
+        <div class="section-title">
+          <p class="eyebrow">처음 한 번</p>
+          <h2>2. GitHub·Vercel 계정 만들기</h2>
+        </div>
+
+        <div class="card">
+          <h3>GitHub 계정 만들기 (약 3분)</h3>
+          <p>GitHub는 앱의 설계도(코드)를 보관하는 곳입니다. 이미 계정이 있으면 로그인만 확인하고 넘어가세요.</p>
+          <ol class="guide-list">
+            <li><a href="https://github.com" target="_blank" rel="noreferrer">github.com</a>에 접속해 오른쪽 위 <span class="button-name">Sign up</span>을 누릅니다.</li>
+            <li>이메일 주소를 입력하고 <span class="button-name">Continue</span>를 누릅니다.</li>
+            <li>비밀번호를 만들어 입력합니다(꼭 기억할 곳에 적어 두세요).</li>
+            <li>사용자 이름(Username)을 정합니다 — 영문·숫자·하이픈(-)만 가능합니다. 예: <code>saebom-health</code></li>
+            <li>로봇이 아님을 확인하는 퍼즐을 풀고 <span class="button-name">Create account</span>를 누릅니다.</li>
+            <li>입력한 이메일로 온 인증 코드를 화면에 입력하면 가입 완료입니다.</li>
+          </ol>
+          <div class="callout">
+            사용자 이름은 앱 주소에도 일부 쓰일 수 있으니 짧고 깔끔하게 정하는 것이 좋습니다. 학교 메일, 개인 메일
+            모두 사용할 수 있습니다.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 12px">
+          <h3>Vercel 계정 만들기 (약 2분)</h3>
+          <p>
+            Vercel은 앱을 인터넷 주소로 띄워 주는 곳입니다. 반드시 <strong>GitHub로 로그인하는 방식</strong>으로
+            만드세요 — 두 서비스가 자동으로 연결되어 이후 과정이 훨씬 쉬워집니다.
+          </p>
+          <ol class="guide-list">
+            <li><a href="https://vercel.com" target="_blank" rel="noreferrer">vercel.com</a>에 접속해 오른쪽 위 <span class="button-name">Sign Up</span>을 누릅니다.</li>
+            <li>요금제를 물으면 무료인 <span class="button-name">Hobby</span>를 선택하고 이름을 입력합니다.</li>
+            <li><span class="button-name">Continue with GitHub</span>를 누릅니다. (이메일로 따로 가입하지 말고 꼭 이 버튼!)</li>
+            <li>GitHub 로그인 창이 뜨면 방금 만든 계정으로 로그인하고 <span class="button-name">Authorize Vercel</span>을 눌러 승인합니다.</li>
+            <li>Vercel 대시보드 화면이 보이면 준비 끝입니다.</li>
+          </ol>
+          <div class="callout good">
+            무료(Hobby) 요금제로 학교 사용에 충분하며, 결제 정보를 입력할 필요가 없습니다.
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>포크(Fork)는 따로 하지 않아도 됩니다.</strong> 뒤에 나오는 Deploy with Vercel 버튼이 앱 저장소
+          사본을 내 GitHub 계정에 자동으로 만들어 줍니다(<code>Create Git Repository</code> 화면). GitHub에서 Fork
+          버튼을 누르는 과정은 이 연수에서 필요 없습니다.
+        </div>
+      </section>
+
       <section id="own">
         <div class="section-title">
           <p class="eyebrow">내 것으로 만들기</p>
-          <h2>2. Google Sheets 사본 만들기</h2>
+          <h2>3. Google Sheets 사본 만들기</h2>
         </div>
 
         <div class="step">
@@ -547,7 +596,7 @@
 
         <div class="section-title">
           <p class="eyebrow">Vercel 배포</p>
-          <h2>3. 내 Vercel 앱 만들기</h2>
+          <h2>4. 내 Vercel 앱 만들기</h2>
         </div>
 
         <div class="step">
@@ -561,7 +610,8 @@
             <div class="screen">
               <strong>화면에서 보이는 말</strong>
               <code>Create Git Repository</code>, <code>Import Project</code>, <code>Deploy</code> 같은 문구가 나올 수 있습니다.
-              기본값을 유지하고 다음으로 진행하면 됩니다.
+              <code>Create Git Repository</code>는 내 GitHub 계정에 앱 사본을 만드는 과정입니다(따로 Fork 불필요).
+              저장소 이름은 <code>handwash-school</code> 그대로 두고 기본값을 유지하며 다음으로 진행하면 됩니다.
             </div>
           </div>
         </div>
@@ -636,7 +686,7 @@
       <section id="collect">
         <div class="section-title">
           <p class="eyebrow">동작 데이터 만들기</p>
-          <h2>4. 휴대폰·패드로 샘플 수집하기</h2>
+          <h2>5. 휴대폰·패드로 샘플 수집하기</h2>
         </div>
 
         <div class="card">
@@ -804,7 +854,7 @@
       <section id="wash">
         <div class="section-title">
           <p class="eyebrow">학생 사용</p>
-          <h2>5. 학생이 손씻기 앱 사용하기</h2>
+          <h2>6. 학생이 손씻기 앱 사용하기</h2>
         </div>
 
         <div class="step">
@@ -900,7 +950,7 @@
       <section id="teacher">
         <div class="section-title">
           <p class="eyebrow">관리</p>
-          <h2>6. 교사용 확인 화면과 시트 관리</h2>
+          <h2>7. 교사용 확인 화면과 시트 관리</h2>
         </div>
 
         <div class="grid-two">
@@ -996,7 +1046,7 @@
       <section id="trouble">
         <div class="section-title">
           <p class="eyebrow">문제 해결</p>
-          <h2>7. 자주 막히는 부분</h2>
+          <h2>8. 자주 막히는 부분</h2>
         </div>
 
         <div class="grid-two">
@@ -1072,7 +1122,7 @@
       <section id="privacy">
         <div class="section-title">
           <p class="eyebrow">운영 주의</p>
-          <h2>8. 개인정보와 수업 운영</h2>
+          <h2>9. 개인정보와 수업 운영</h2>
         </div>
         <div class="card">
           <ul>

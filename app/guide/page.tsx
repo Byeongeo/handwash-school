@@ -9,6 +9,7 @@ export default function GuidePage() {
           연수 참여자에게 이 주소를 공유하면 순서대로 따라 하며 자기 앱을 만들 수 있습니다.
         </p>
         <ol className="guide-list">
+          <li>GitHub·Vercel 계정이 없다면 먼저 만듭니다(가입 순서는 teacher-guide.html의 2번 참고 — Vercel은 "Continue with GitHub"로).</li>
           <li>강사가 제공한 Google Sheets 템플릿 링크를 열고, 각자 사본을 만듭니다.</li>
           <li>사본 시트에서 확장 프로그램, Apps Script를 열고 `setup`을 실행합니다.</li>
           <li>Apps Script를 웹앱으로 배포하고 `/exec`로 끝나는 URL을 복사합니다.</li>
