@@ -28,6 +28,8 @@ var DEFAULTS = {
   confidenceThreshold: 65,
   activeSampleSet: "default",
   displaySec: 4,
+  idleTimeoutSec: 20,
+  alwaysOn: "N",
   allowUnregistered: "Y",
   messageComplete: "{이름} 학생, 손씻기 6단계를 완료했습니다."
 };
@@ -72,6 +74,8 @@ function setup() {
     ["confidenceThreshold", DEFAULTS.confidenceThreshold],
     ["activeSampleSet", DEFAULTS.activeSampleSet],
     ["displaySec", DEFAULTS.displaySec],
+    ["idleTimeoutSec", DEFAULTS.idleTimeoutSec],
+    ["alwaysOn", DEFAULTS.alwaysOn],
     ["allowUnregistered", DEFAULTS.allowUnregistered],
     ["messageComplete", DEFAULTS.messageComplete]
   ]);
@@ -121,6 +125,8 @@ function getConfigResponse_() {
     confidenceThreshold: config.confidenceThreshold,
     activeSampleSet: config.activeSampleSet,
     displaySec: config.displaySec,
+    idleTimeoutSec: config.idleTimeoutSec,
+    alwaysOn: config.alwaysOn === "Y",
     allowUnregistered: config.allowUnregistered === "Y",
     messageComplete: config.messageComplete
   };
@@ -281,6 +287,8 @@ function getConfig_(ss) {
     confidenceThreshold: number_(map.confidenceThreshold, DEFAULTS.confidenceThreshold),
     activeSampleSet: cell_(map.activeSampleSet) || DEFAULTS.activeSampleSet,
     displaySec: number_(map.displaySec, DEFAULTS.displaySec),
+    idleTimeoutSec: number_(map.idleTimeoutSec, DEFAULTS.idleTimeoutSec),
+    alwaysOn: String(map.alwaysOn || DEFAULTS.alwaysOn).toUpperCase() === "Y" ? "Y" : "N",
     allowUnregistered: String(map.allowUnregistered || DEFAULTS.allowUnregistered).toUpperCase() === "N" ? "N" : "Y",
     messageComplete: cell_(map.messageComplete) || DEFAULTS.messageComplete
   };

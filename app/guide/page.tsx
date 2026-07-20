@@ -15,7 +15,8 @@ export default function GuidePage() {
           <li>강사가 제공한 Deploy with Vercel 버튼을 누르고 `APPS_SCRIPT_URL`에 복사한 URL을 넣습니다.</li>
           <li>필요하면 `APP_SHARED_SECRET`, `TRAINER_CODE`를 같은 값으로 입력합니다.</li>
           <li>배포가 끝나면 `/collect`에서 휴대폰이나 패드로 샘플을 수집합니다.</li>
-          <li>`/wash`에서 테스트 학생으로 손씻기 완료 기록을 남깁니다.</li>
+          <li>`/wash`(교사 점검 화면)에서 테스트 학생으로 판정과 기록을 확인합니다.</li>
+          <li>수돗가 기기에는 학생 전용 `/student`(전체화면 키오스크)를 띄워 운영합니다.</li>
           <li>`/teacher`와 Google Sheets에서 샘플 수와 학생 기록을 확인합니다.</li>
         </ol>
       </section>
@@ -35,10 +36,33 @@ export default function GuidePage() {
       </section>
 
       <section className="panel">
+        <h2>학생 키오스크(/student) 운영</h2>
+        <div className="two-col">
+          <div>
+            <strong>시작 방법 3가지</strong>
+            <p>
+              ① 화면 터치 ② 블루투스 풋스위치(키보드형 페달 — 폰·패드에서도 동작) ③ <b>항상 대기 모드</b>: 시트
+              `config`의 `alwaysOn`을 `Y`로 바꾸면, 아침에 교사가 화면을 한 번 눌러 켠 뒤 하루 종일 카메라가 QR
+              대기 상태를 유지합니다. 학생은 QR 명찰만 보여주면 시작되어 아무것도 만질 필요가 없습니다(충전기 상시
+              연결 권장).
+            </p>
+          </div>
+          <div>
+            <strong>자동 취소</strong>
+            <p>
+              손씻기 도중 손이 화면에서 사라진 채 `idleTimeoutSec`(기본 20초)가 지나면 세션이 자동 취소되고 기록이
+              남지 않습니다. 값은 Google Sheets `config` 탭에서 바꿀 수 있습니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel">
         <h2>교사에게 강조할 점</h2>
         <p>
-          학생용 `/wash`는 점수 기록용입니다. 샘플 수집은 `/collect`에서 교사가 관리해야 합니다. 학생이 잘못된
-          라벨로 샘플을 올리면 판정 품질이 떨어질 수 있으므로 수집 코드는 교사용으로만 공유하세요.
+          학생에게는 `/student` 주소만 열어 주세요. `/wash`는 교사 점검용, 샘플 수집은 `/collect`에서 교사가
+          관리해야 합니다. 학생이 잘못된 라벨로 샘플을 올리면 판정 품질이 떨어질 수 있으므로 수집 코드는 교사용으로만
+          공유하세요.
         </p>
       </section>
     </main>

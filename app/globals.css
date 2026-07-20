@@ -491,6 +491,135 @@ p {
   line-height: 1.85;
 }
 
+/* 학생 키오스크(/student) — 상단 메뉴 없음, 큰 글자, 터치/발판 시작 */
+.kiosk {
+  width: min(1100px, calc(100vw - 24px));
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 16px 0 20px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kiosk-idle {
+  grid-row: 1 / -1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.kiosk-emoji {
+  font-size: clamp(64px, 14vw, 120px);
+  line-height: 1;
+}
+
+.kiosk-idle h1,
+.kiosk-top h1 {
+  font-size: clamp(26px, 4.6vw, 46px);
+  text-align: center;
+}
+
+.kiosk-idle p {
+  margin: 0;
+  font-size: clamp(15px, 2.4vw, 20px);
+  font-weight: 700;
+}
+
+.kiosk-note {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kiosk-top {
+  display: grid;
+  gap: 6px;
+}
+
+.kiosk-sub {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  color: var(--muted);
+  font-size: clamp(14px, 2.2vw, 19px);
+}
+
+.kiosk-score {
+  color: var(--green);
+}
+
+.kiosk-viewer {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #101819;
+  min-height: 300px;
+  box-shadow: var(--shadow);
+}
+
+.kiosk-viewer.off {
+  display: none;
+}
+
+.kiosk-viewer video,
+.kiosk-viewer canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.kiosk-viewer video {
+  object-fit: contain;
+}
+
+.kiosk-viewer canvas {
+  pointer-events: none;
+}
+
+.kiosk-steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kiosk-step {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px 10px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.kiosk-step span:first-child {
+  font-weight: 900;
+  font-size: clamp(13px, 1.9vw, 18px);
+}
+
+.kiosk-step b {
+  color: var(--muted);
+  font-size: clamp(12px, 1.8vw, 16px);
+}
+
+.kiosk-step.done {
+  border-color: var(--green);
+  background: rgba(37, 120, 79, 0.08);
+}
+
+.kiosk-step.done b {
+  color: var(--green);
+}
+
 @media (max-width: 980px) {
   .tile-grid,
   .three-col,
@@ -513,7 +642,11 @@ p {
 
   .app-header nav {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .kiosk-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .app-header nav a {

@@ -25,6 +25,8 @@ const DEFAULT_CONFIG: HandwashConfig = {
   confidenceThreshold: 65,
   activeSampleSet: "default",
   displaySec: 4,
+  idleTimeoutSec: 20,
+  alwaysOn: false,
   allowUnregistered: true,
   messageComplete: "{이름} 학생, 손씻기 6단계를 완료했습니다."
 };
@@ -46,6 +48,8 @@ export function WashClient() {
   const studentRef = useRef<Student | null>(currentStudent);
   const sessionActiveRef = useRef(false);
   const finishingRef = useRef(false);
+  const sessionSeqRef = useRef(0);
+  const lastHandAtRef = useRef(0);
   const lastCoachAtRef = useRef(0);
   const lastCompletedStepRef = useRef("");
   const lastQrScanAtRef = useRef(0);
@@ -61,6 +65,7 @@ export function WashClient() {
   const finishSession = useCallback(async (finalProgress: Record<string, number>) => {
     if (finishingRef.current) return;
     finishingRef.current = true;
+    const mySeq = sessionSeqRef.current;
     setSessionActive(false);
     const cfg = configRef.current;
     const student = studentRef.current || { id: "practice", name: "연습", raw: "practice" };
@@ -98,6 +103,8 @@ export function WashClient() {
       setSaveState("기록 저장 실패: 네트워크를 확인하세요.");
     } finally {
       window.setTimeout(() => {
+        // 표시 시간 사이에 다음 학생이 QR로 새 세션을 시작했다면 초기화하지 않음
+        if (sessionSeqRef.current !== mySeq) return;
         finishingRef.current = false;
         setCurrentStudent(null);
         setProgress(createEmptyProgress());
@@ -109,6 +116,7 @@ export function WashClient() {
 
   const startStudent = useCallback((student: Student) => {
     if (!student.id) return;
+    sessionSeqRef.current += 1;
     setCurrentStudent(student);
     studentRef.current = student;
     const emptyProgress = createEmptyProgress();
@@ -117,18 +125,38 @@ export function WashClient() {
     setSessionActive(true);
     setResult("");
     setSaveState("");
+    lastHandAtRef.current = performance.now();
     lastCoachAtRef.current = performance.now();
     lastCompletedStepRef.current = "";
     finishingRef.current = false;
     speak(`${student.name || student.id} 학생, 손씻기를 시작합니다.`);
   }, []);
 
+  const cancelSession = useCallback(() => {
+    sessionSeqRef.current += 1;
+    finishingRef.current = false;
+    setSessionActive(false);
+    setCurrentStudent(null);
+    const emptyProgress = createEmptyProgress();
+    setProgress(emptyProgress);
+    progressRef.current = emptyProgress;
+    setResult("");
+    setSaveState("손이 보이지 않아 세션을 취소했습니다(기록 없음).");
+    speak("손이 보이지 않아 손씻기를 취소했습니다.");
+  }, []);
+
   const onFrame = useCallback(
-    (frame: { prediction: Prediction | null; dt: number; now: number; video: HTMLVideoElement }) => {
+    (frame: { prediction: Prediction | null; handCount: number; dt: number; now: number; video: HTMLVideoElement }) => {
       if (!sessionActiveRef.current && qrEnabledRef.current) scanQr(frame.video, frame.now, lastQrScanAtRef, qrCanvasRef, (raw) => startStudent(parseStudentPayload(raw)));
       if (!sessionActiveRef.current || finishingRef.current) return;
 
       const cfg = configRef.current;
+      if (frame.handCount > 0) {
+        lastHandAtRef.current = frame.now;
+      } else if (frame.now - lastHandAtRef.current > cfg.idleTimeoutSec * 1000) {
+        cancelSession();
+        return;
+      }
       const prediction = frame.prediction;
       if (prediction && prediction.confidence * 100 >= cfg.confidenceThreshold && STEP_LABEL_IDS.has(prediction.label)) {
         const label = prediction.label;
@@ -155,7 +183,7 @@ export function WashClient() {
         lastCoachAtRef.current = frame.now;
       }
     },
-    [finishSession, startStudent]
+    [finishSession, startStudent, cancelSession]
   );
 
   const camera = useHandwashCamera({ samples, onFrame });

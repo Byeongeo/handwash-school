@@ -36,6 +36,8 @@ export type HandwashConfig = {
   confidenceThreshold: number;
   activeSampleSet: string;
   displaySec: number;
+  idleTimeoutSec: number;
+  alwaysOn: boolean;
   allowUnregistered: boolean;
   messageComplete: string;
 };
