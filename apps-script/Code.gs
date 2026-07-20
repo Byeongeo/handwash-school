@@ -44,11 +44,12 @@ function onOpen() {
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  ensureTab_(ss, TABS.students, ["학번", "이름", "QR(자동)"], [
-    ["3-2-15", "홍길동"],
-    ["3-2-16", "김보건"]
+  ensureTab_(ss, TABS.students, ["학번", "이름", "QR(자동)", "누적점수(자동)", "완료횟수(자동)"], [
+    ["1101", "홍길동"],
+    ["1102", "김보건"]
   ]);
   fillQrColumn_(ss.getSheetByName(TABS.students));
+  fillScoreColumns_(ss.getSheetByName(TABS.students));
 
   ensureTab_(ss, TABS.samples, ["시각", "세트", "라벨", "featureJson", "기기", "source"], []);
   ensureTab_(ss, TABS.records, [
@@ -271,7 +272,19 @@ function saveRecord_(record) {
   } finally {
     lock.releaseLock();
   }
-  return { ok: true, studentId: id, studentName: name, score: row[4] };
+
+  // 이 학생의 누적점수·완료횟수 (records 전체에서 합산)
+  var totalScore = 0;
+  var completedCount = 0;
+  var recordRows = readTab_(ss, TABS.records);
+  for (var r2 = 1; r2 < recordRows.length; r2++) {
+    if (cell_(recordRows[r2][1]) === id) {
+      totalScore += Number(recordRows[r2][4]) || 0;
+      completedCount += 1;
+    }
+  }
+
+  return { ok: true, studentId: id, studentName: name, score: row[4], totalScore: totalScore, completedCount: completedCount };
 }
 
 function getConfig_(ss) {
@@ -326,6 +339,13 @@ function fillQrColumn_(sh) {
     ]);
   }
   sh.getRange(2, 3, formulas.length, 1).setFormulas(formulas);
+}
+
+// 학생별 누적점수·완료횟수(records 탭 합계) — D·E열 자동 수식
+function fillScoreColumns_(sh) {
+  if (!sh) return;
+  sh.getRange(2, 4).setFormula('=ARRAYFORMULA(IF($A2:$A="",,SUMIF(records!$B:$B,$A2:$A,records!$E:$E)))');
+  sh.getRange(2, 5).setFormula('=ARRAYFORMULA(IF($A2:$A="",,COUNTIF(records!$B:$B,$A2:$A)))');
 }
 
 function readTab_(ss, name) {

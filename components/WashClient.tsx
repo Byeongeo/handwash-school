@@ -101,7 +101,13 @@ export function WashClient() {
         })
       });
       const data = await res.json();
-      setSaveState(data?.ok ? "기록 저장 완료" : data?.message || "기록 저장 실패");
+      if (data?.ok) {
+        const total =
+          typeof data.totalScore === "number" ? ` · 누적 ${data.totalScore}점 (${data.completedCount || 1}회)` : "";
+        setSaveState(`기록 저장 완료${total}`);
+      } else {
+        setSaveState(data?.message || "기록 저장 실패");
+      }
     } catch {
       setSaveState("기록 저장 실패: 네트워크를 확인하세요.");
     } finally {
