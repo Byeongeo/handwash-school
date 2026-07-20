@@ -6,6 +6,8 @@ import { LABELS, sampleCounts, type HandwashSample, type LabelId } from "@/lib/h
 
 const LOCAL_KEY = "handwash-school-pending-samples";
 const SETTINGS_KEY = "handwash-school-collect-settings";
+// 수집 시작 1회당 이만큼 모이면 자동으로 수집 완료(추가 수집은 다시 수집 시작)
+const BATCH_SIZE = 100;
 
 type CollectSettings = { setName: string; deviceName: string; label: LabelId };
 
@@ -33,6 +35,7 @@ export function CollectClient() {
   const [trainerCode, setTrainerCode] = useState("");
   const [pendingSamples, setPendingSamples] = useState<HandwashSample[]>(() => loadPendingSamples());
   const [isSampling, setIsSampling] = useState(false);
+  const [batchCount, setBatchCount] = useState(0);
   const [uploadState, setUploadState] = useState("아직 업로드하지 않았습니다.");
 
   const selectedLabelRef = useRef<LabelId>(selectedLabel);
@@ -40,6 +43,7 @@ export function CollectClient() {
   const deviceNameRef = useRef(deviceName);
   const isSamplingRef = useRef(false);
   const lastSampleAtRef = useRef(0);
+  const batchCountRef = useRef(0);
 
   selectedLabelRef.current = selectedLabel;
   setNameRef.current = setName.trim() || "default";
@@ -63,6 +67,14 @@ export function CollectClient() {
       savePendingSamples(next);
       return next;
     });
+    batchCountRef.current += 1;
+    setBatchCount(Math.max(0, batchCountRef.current));
+    if (batchCountRef.current >= BATCH_SIZE) {
+      isSamplingRef.current = false;
+      setIsSampling(false);
+      const short = LABELS.find((label) => label.id === selectedLabelRef.current)?.short || "";
+      speak(`${short} ${BATCH_SIZE}개 수집 완료. 다음 라벨을 고르세요.`);
+    }
   }, []);
 
   const camera = useHandwashCamera({ samples: pendingSamples, onFrame });
@@ -80,7 +92,21 @@ export function CollectClient() {
     }
   }, [setName, deviceName, selectedLabel]);
 
+  const toggleSampling = () => {
+    if (isSamplingRef.current) {
+      isSamplingRef.current = false;
+      setIsSampling(false);
+      return;
+    }
+    batchCountRef.current = 0;
+    setBatchCount(0);
+    const short = LABELS.find((label) => label.id === selectedLabelRef.current)?.short || "";
+    speak(`${short} 수집 시작`);
+    setIsSampling(true);
+  };
+
   const addSingle = () => {
+    batchCountRef.current = -BATCH_SIZE; // 단발 저장은 자동 완료 카운트에서 제외
     setIsSampling(true);
     window.setTimeout(() => setIsSampling(false), 380);
   };
@@ -179,8 +205,8 @@ export function CollectClient() {
                 </option>
               ))}
             </select>
-            <button className={isSampling ? "danger" : "primary"} type="button" onClick={() => setIsSampling((value) => !value)}>
-              {isSampling ? "수집 완료" : "수집 시작"}
+            <button className={isSampling ? "danger" : "primary"} type="button" onClick={toggleSampling}>
+              {isSampling ? `수집 완료 (${batchCount}/${BATCH_SIZE})` : "수집 시작"}
             </button>
             <span className="toolbar-count">
               이 라벨 {counts[selectedLabel]}개 · 전체 {pendingSamples.length}개
@@ -238,8 +264,8 @@ export function CollectClient() {
               <button type="button" onClick={addSingle}>
                 1개 저장
               </button>
-              <button className={isSampling ? "danger" : "primary"} type="button" onClick={() => setIsSampling((value) => !value)}>
-                {isSampling ? "수집 완료" : "수집 시작"}
+              <button className={isSampling ? "danger" : "primary"} type="button" onClick={toggleSampling}>
+                {isSampling ? `수집 완료 (${batchCount}/${BATCH_SIZE})` : "수집 시작"}
               </button>
             </div>
           </section>
@@ -298,4 +324,13 @@ function loadPendingSamples(): HandwashSample[] {
 function savePendingSamples(samples: HandwashSample[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LOCAL_KEY, JSON.stringify(samples));
+}
+
+function speak(text: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ko-KR";
+  utterance.rate = 1.02;
+  window.speechSynthesis.speak(utterance);
 }
