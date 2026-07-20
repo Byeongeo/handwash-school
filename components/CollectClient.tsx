@@ -1,15 +1,35 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHandwashCamera } from "@/components/useHandwashCamera";
 import { LABELS, sampleCounts, type HandwashSample, type LabelId } from "@/lib/handwash";
 
 const LOCAL_KEY = "handwash-school-pending-samples";
+const SETTINGS_KEY = "handwash-school-collect-settings";
+
+type CollectSettings = { setName: string; deviceName: string; label: LabelId };
+
+function loadSettings(): CollectSettings {
+  const fallback: CollectSettings = { setName: "default", deviceName: "", label: "palm" };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return {
+      setName: typeof parsed.setName === "string" && parsed.setName.trim() ? parsed.setName : fallback.setName,
+      deviceName: typeof parsed.deviceName === "string" ? parsed.deviceName : fallback.deviceName,
+      label: LABELS.some((label) => label.id === parsed.label) ? (parsed.label as LabelId) : fallback.label
+    };
+  } catch {
+    return fallback;
+  }
+}
 
 export function CollectClient() {
-  const [selectedLabel, setSelectedLabel] = useState<LabelId>("palm");
-  const [setName, setSetName] = useState("default");
-  const [deviceName, setDeviceName] = useState("");
+  const [selectedLabel, setSelectedLabel] = useState<LabelId>(() => loadSettings().label);
+  const [setName, setSetName] = useState(() => loadSettings().setName);
+  const [deviceName, setDeviceName] = useState(() => loadSettings().deviceName);
   const [trainerCode, setTrainerCode] = useState("");
   const [pendingSamples, setPendingSamples] = useState<HandwashSample[]>(() => loadPendingSamples());
   const [isSampling, setIsSampling] = useState(false);
@@ -47,6 +67,18 @@ export function CollectClient() {
 
   const camera = useHandwashCamera({ samples: pendingSamples, onFrame });
   const counts = useMemo(() => sampleCounts(pendingSamples), [pendingSamples]);
+
+  // 세트 이름·기기 메모·현재 라벨을 기기에 자동 저장(다음 방문 때 복원)
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({ setName: setName.trim() || "default", deviceName: deviceName.trim(), label: selectedLabel })
+      );
+    } catch {
+      /* noop */
+    }
+  }, [setName, deviceName, selectedLabel]);
 
   const addSingle = () => {
     setIsSampling(true);
@@ -136,6 +168,23 @@ export function CollectClient() {
             <button type="button" onClick={() => void camera.toggleFacing()}>
               카메라 전환 ({camera.facing === "user" ? "화면 쪽" : "바깥 쪽"})
             </button>
+            <select
+              aria-label="현재 라벨"
+              value={selectedLabel}
+              onChange={(event) => setSelectedLabel(event.target.value as LabelId)}
+            >
+              {LABELS.map((label) => (
+                <option value={label.id} key={label.id}>
+                  {label.name}
+                </option>
+              ))}
+            </select>
+            <button className={isSampling ? "danger" : "primary"} type="button" onClick={() => setIsSampling((value) => !value)}>
+              {isSampling ? "수집 완료" : "수집 시작"}
+            </button>
+            <span className="toolbar-count">
+              이 라벨 {counts[selectedLabel]}개 · 전체 {pendingSamples.length}개
+            </span>
             <span className="status-note">{camera.message}</span>
           </div>
           <div className={"viewer" + (camera.mirrored ? " mirrored" : "")}>
@@ -190,7 +239,7 @@ export function CollectClient() {
                 1개 저장
               </button>
               <button className={isSampling ? "danger" : "primary"} type="button" onClick={() => setIsSampling((value) => !value)}>
-                {isSampling ? "수집 중지" : "연속 수집"}
+                {isSampling ? "수집 완료" : "수집 시작"}
               </button>
             </div>
           </section>

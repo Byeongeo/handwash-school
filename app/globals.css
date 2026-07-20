@@ -285,6 +285,18 @@ p {
   background: var(--surface-2);
 }
 
+.toolbar select {
+  width: auto;
+  max-width: 220px;
+}
+
+.toolbar-count {
+  color: var(--teal);
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .viewer {
   position: relative;
   width: 100%;
