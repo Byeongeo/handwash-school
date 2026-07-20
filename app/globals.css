@@ -113,6 +113,20 @@ p {
   line-height: 1.62;
 }
 
+.inapp-warning {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 12px 16px;
+  background: #fff3df;
+  border-bottom: 2px solid var(--amber);
+  color: #7a4a10;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+}
+
 .app-header {
   position: sticky;
   top: 0;
