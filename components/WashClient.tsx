@@ -243,9 +243,12 @@ export function WashClient() {
             <button type="button" onClick={() => setQrEnabled((value) => !value)}>
               QR {qrEnabled ? "켜짐" : "꺼짐"}
             </button>
+            <button type="button" onClick={() => void camera.toggleFacing()}>
+              카메라 전환 ({camera.facing === "user" ? "화면 쪽" : "바깥 쪽"})
+            </button>
             <span className="status-note">{camera.message}</span>
           </div>
-          <div className="viewer">
+          <div className={"viewer" + (camera.mirrored ? " mirrored" : "")}>
             <video ref={camera.videoRef} playsInline muted />
             <canvas ref={camera.canvasRef} />
             {camera.status !== "running" && <div className="viewer-message">카메라를 시작한 뒤 QR 또는 수동 입력으로 세션을 시작하세요.</div>}

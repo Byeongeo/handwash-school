@@ -28,6 +28,15 @@ type CameraStatus = "idle" | "loading" | "ready" | "running" | "error";
 
 type Landmark = { x: number; y: number; z?: number };
 
+// 기기별 카메라 방향 기억(같은 브라우저면 /collect·/student·/wash 공유)
+const FACING_KEY = "handwash-camera-facing";
+type Facing = "user" | "environment";
+
+function loadFacing(): Facing {
+  if (typeof window === "undefined") return "user";
+  return window.localStorage.getItem(FACING_KEY) === "environment" ? "environment" : "user";
+}
+
 export function useHandwashCamera({ samples = [], onFrame }: UseHandwashCameraOptions = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,6 +52,9 @@ export function useHandwashCamera({ samples = [], onFrame }: UseHandwashCameraOp
   const [message, setMessage] = useState("카메라를 시작하세요.");
   const [handCount, setHandCount] = useState(0);
   const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [facing, setFacing] = useState<Facing>(() => loadFacing());
+  const facingRef = useRef<Facing>(facing);
+  facingRef.current = facing;
 
   samplesRef.current = samples;
   onFrameRef.current = onFrame;
@@ -152,7 +164,7 @@ export function useHandwashCamera({ samples = [], onFrame }: UseHandwashCameraOp
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          facingMode: { ideal: "environment" },
+          facingMode: { ideal: facingRef.current },
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
@@ -176,6 +188,18 @@ export function useHandwashCamera({ samples = [], onFrame }: UseHandwashCameraOp
     }
   }, [loadModel, loop, stopCamera]);
 
+  const toggleFacing = useCallback(async () => {
+    const next: Facing = facingRef.current === "user" ? "environment" : "user";
+    facingRef.current = next;
+    setFacing(next);
+    try {
+      window.localStorage.setItem(FACING_KEY, next);
+    } catch {
+      /* noop */
+    }
+    if (runningRef.current) await startCamera();
+  }, [startCamera]);
+
   useEffect(() => {
     void loadModel();
     return () => stopCamera();
@@ -188,6 +212,9 @@ export function useHandwashCamera({ samples = [], onFrame }: UseHandwashCameraOp
     message,
     handCount,
     prediction,
+    facing,
+    mirrored: facing === "user",
+    toggleFacing,
     startCamera,
     stopCamera
   };

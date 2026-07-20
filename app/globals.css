@@ -309,6 +309,14 @@ p {
   pointer-events: none;
 }
 
+/* 전면(화면 쪽) 카메라: 거울처럼 보여 아이가 손 위치 맞추기 쉬움. 판정·QR은 원본 프레임 사용 */
+.viewer.mirrored video,
+.viewer.mirrored canvas,
+.kiosk-viewer.mirrored video,
+.kiosk-viewer.mirrored canvas {
+  transform: scaleX(-1);
+}
+
 .viewer-message {
   position: absolute;
   inset: 0;

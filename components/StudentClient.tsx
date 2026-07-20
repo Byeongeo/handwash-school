@@ -375,7 +375,7 @@ export function StudentClient() {
       )}
 
       {/* 카메라는 항상 DOM에 두고 표시만 토글(ref 안정) */}
-      <div className={"kiosk-viewer" + (phase === "idle" ? " off" : "")}>
+      <div className={"kiosk-viewer" + (phase === "idle" ? " off" : "") + (camera.mirrored ? " mirrored" : "")}>
         <video ref={camera.videoRef} playsInline muted />
         <canvas ref={camera.canvasRef} />
         {phase !== "idle" && camera.status !== "running" && <div className="viewer-message">{camera.message}</div>}
